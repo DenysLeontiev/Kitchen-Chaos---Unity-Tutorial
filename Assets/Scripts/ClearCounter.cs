@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ClearCounter : MonoBehaviour
+public class ClearCounter : MonoBehaviour, IKitchenObjectParent
 {
 	[SerializeField] private KitchenObjectSO kitchenObjectSO; // each counter knows which object it is spawning
     [SerializeField] private Transform counterTopPoint; // place, where we spawn kicthenObjects
@@ -17,23 +17,23 @@ public class ClearCounter : MonoBehaviour
         {
             if(kitchenObject != null)
             {
-                kitchenObject.SetClearCounter(secondClearCounter); // just for testing, we send another clearCounter as parent to kitchenObject
+                kitchenObject.SetKitchenObjectParent(secondClearCounter); // just for testing, we send another clearCounter as parent to kitchenObject
             }
         }
 	}
 
-	public void OnInteract()
+	public void OnInteract(Player player)
     {
-        if (kitchenObject == null) // if we alredy have that
+        if (kitchenObject == null) // check if we alredy have that
         {
             Transform kitchenObjectTransform = Instantiate(kitchenObjectSO.prefab, counterTopPoint); // spawns at particular position
 
 			// here, we set new clearCounter for kitchenObject,which is on it
-			kitchenObjectTransform.GetComponent<KitchenObject>().SetClearCounter(this);
+			kitchenObjectTransform.GetComponent<KitchenObject>().SetKitchenObjectParent(this);
 		}
-        else
+        else // if counter already has kitchenObject on it, so when we click 'E' again, we pick that up
         {
-            Debug.Log(kitchenObject.GetClearCounter());  // get kitchenObject`s clearCounter
+            kitchenObject.SetKitchenObjectParent(player);
         }
 
     }

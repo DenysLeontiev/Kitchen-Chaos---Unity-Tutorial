@@ -8,7 +8,7 @@ public class KitchenObject : MonoBehaviour
     // So that the object knows its own type, properties, name etc(knows who it is)
     [SerializeField] private KitchenObjectSO kitchenObjectSO;
 
-    private ClearCounter clearCounter; // so that the object knows its parent(where it is standing)
+    private IKitchenObjectParent kitchenObjectParent; // so that the object knows its parent(where it is standing)
 
     // this method returns its data 
     public KitchenObjectSO GetKitchenObjectSO() 
@@ -16,28 +16,28 @@ public class KitchenObject : MonoBehaviour
         return kitchenObjectSO; 
     }
 
-    public void SetClearCounter(ClearCounter clearCounter) // method,that sets new clearCounter for kithcenObject
+    public void SetKitchenObjectParent(IKitchenObjectParent kitchenObjectParent) // method,that sets new clearCounter for kithcenObject
 	{
-        if(this.clearCounter != null) // check if we have parent
+        if(this.kitchenObjectParent != null) // check if we have parent
         {
-            this.clearCounter.ClearKitchenObject(); // we delete current kitchenObject from old parent
+            this.kitchenObjectParent.ClearKitchenObject(); // we delete current kitchenObject from old parent
         }
 
 
-        this.clearCounter = clearCounter;  // here we set new clearCounter for current kithcenObject
+        this.kitchenObjectParent = kitchenObjectParent;  // here we set new clearCounter for current kithcenObject
 
-        if(clearCounter.HasKithcenObject()) // check,if that parent alredy has a kitchenObject on it
+        if(kitchenObjectParent.HasKithcenObject()) // check,if that parent alredy has a kitchenObject on it
         {
             Debug.LogError("This counter alredy has kitchen object on it");
         }
 
-        clearCounter.SetKitchenObject(this); // set curretn KitchenObject as child to clearCounter (new parent)
-        transform.parent = clearCounter.GetKicthenObjectFollowTransform(); // here we set new parent for kithcenObject
+        kitchenObjectParent.SetKitchenObject(this); // set curretn KitchenObject as child to clearCounter (new parent)
+        transform.parent = kitchenObjectParent.GetKicthenObjectFollowTransform(); // here we set new parent for kithcenObject
 		transform.localPosition = Vector3.zero; // make that be in the center
     }
 
-    public ClearCounter GetClearCounter() // returning kitchenObject`s clearCounter
+    public IKitchenObjectParent GetClearCounter() // returning kitchenObject`s clearCounter
     {
-        return clearCounter;
+        return kitchenObjectParent;
     }
 }
