@@ -12,7 +12,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
 	public event EventHandler<OnSelectedCounterChangedEventArgs> OnSelectedCounterChanged;
 	public class OnSelectedCounterChangedEventArgs : EventArgs // args, we pass to OnSelectedCounterChanged event
 	{
-		public ClearCounter selectedCounter;
+		public BaseCounter baseCounter;
 	}
 
 
@@ -24,7 +24,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
 	private bool isWalking;
 	private Vector3 lastMovementDirection;
 
-	private ClearCounter selectedCounter;
+	private BaseCounter selectedCounter; // counter, we are looking at
 
 	[SerializeField] private Transform kitchenObjectHoldPoint;
 	private KitchenObject kitchenObject;
@@ -45,6 +45,15 @@ public class Player : MonoBehaviour, IKitchenObjectParent
 	private void Start()
 	{
 		gameInput.OnInteract += GameInput_OnInteract; // subsribe to that event
+		gameInput.OnInteractAlternate += GameInput_OnInteractAlternate;
+	}
+
+	private void GameInput_OnInteractAlternate(object sender, EventArgs e)
+	{
+		if(selectedCounter != null)
+		{
+			selectedCounter.OnInteractAlternate(this);
+		}
 	}
 
 	// this is called, when OnInteract(from GameInput class) event is fired('E' is pressed)
@@ -145,12 +154,12 @@ public class Player : MonoBehaviour, IKitchenObjectParent
 							out RaycastHit hit, 
 							interactionDistance,countersLayerMask))
 		{
-			if(hit.transform.TryGetComponent<ClearCounter>(out ClearCounter clearCounter))
+			if(hit.transform.TryGetComponent<BaseCounter>(out BaseCounter baseCounter))
 			{
-				if(selectedCounter != clearCounter)
+				if(selectedCounter != baseCounter)
 				{
 					// notify all the listeners that we have new selectedCounter
-					SetSelectedCounter(clearCounter);
+					SetSelectedCounter(baseCounter);
 				}
 			}
 			else
@@ -173,10 +182,10 @@ public class Player : MonoBehaviour, IKitchenObjectParent
 
 
 	// here we set selected counter
-	private void SetSelectedCounter(ClearCounter selectedCounter)
+	private void SetSelectedCounter(BaseCounter baseCounter)
 	{
-		this.selectedCounter = selectedCounter;
-		OnSelectedCounterChanged?.Invoke(this, new OnSelectedCounterChangedEventArgs { selectedCounter = selectedCounter });
+		this.selectedCounter = baseCounter;
+		OnSelectedCounterChanged?.Invoke(this, new OnSelectedCounterChangedEventArgs { baseCounter = baseCounter });
 	}
 
 	public Transform GetKicthenObjectFollowTransform() // get kithenObject`s parent
@@ -199,7 +208,7 @@ public class Player : MonoBehaviour, IKitchenObjectParent
 		kitchenObject = null;
 	}
 
-	public bool HasKithcenObject() // if curretn clearCounter has kitchenObject on it
+	public bool HasKitchenObject() // if curretn clearCounter has kitchenObject on it
 	{
 		return kitchenObject != null;
 	}

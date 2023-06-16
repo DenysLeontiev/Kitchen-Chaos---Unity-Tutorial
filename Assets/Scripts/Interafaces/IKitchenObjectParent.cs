@@ -12,5 +12,5 @@ public interface IKitchenObjectParent
 
 	public void ClearKitchenObject(); // make kitchenObject on clearCounter to be equeal to null;
 
-	public bool HasKithcenObject(); // if curretn clearCounter has kitchenObject on it;
+	public bool HasKitchenObject(); // if curretn clearCounter has kitchenObject on it;
 }

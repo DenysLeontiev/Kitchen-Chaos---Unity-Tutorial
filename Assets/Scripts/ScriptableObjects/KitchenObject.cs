@@ -26,18 +26,36 @@ public class KitchenObject : MonoBehaviour
 
         this.kitchenObjectParent = kitchenObjectParent;  // here we set new clearCounter for current kithcenObject
 
-        if(kitchenObjectParent.HasKithcenObject()) // check,if that parent alredy has a kitchenObject on it
+        if(kitchenObjectParent.HasKitchenObject()) // check,if that parent alredy has a kitchenObject on it
         {
-            Debug.LogError("This counter alredy has kitchen object on it");
+            Debug.LogError("This parent alredy has kitchen object on it");
         }
 
-        kitchenObjectParent.SetKitchenObject(this); // set curretn KitchenObject as child to clearCounter (new parent)
+        kitchenObjectParent.SetKitchenObject(this); // set current KitchenObject as child to parent (new parent).So current parent know, whether it has kitcheObject on it
         transform.parent = kitchenObjectParent.GetKicthenObjectFollowTransform(); // here we set new parent for kithcenObject
-		transform.localPosition = Vector3.zero; // make that be in the center
-    }
+        transform.localPosition = Vector3.zero; // make that be in the center
+	}
 
-    public IKitchenObjectParent GetClearCounter() // returning kitchenObject`s clearCounter
+	public IKitchenObjectParent GetClearCounter() // returning kitchenObject`s clearCounter
     {
         return kitchenObjectParent;
     }
+
+    public void DesroySelf()
+    {
+        kitchenObjectParent.ClearKitchenObject(); // make counter forget about kitchenObject
+
+        Destroy(gameObject);
+    }
+
+    public static KitchenObject SpawnKitchenObject(KitchenObjectSO kitchenObjectSO,IKitchenObjectParent kitchenObjectParent)
+    {
+		Transform kitchenObjectTransform = Instantiate(kitchenObjectSO.prefab);
+
+        KitchenObject kitchenObject = kitchenObjectTransform.GetComponent<KitchenObject>();
+
+		kitchenObject.SetKitchenObjectParent(kitchenObjectParent);
+
+        return kitchenObject;
+	}
 }
