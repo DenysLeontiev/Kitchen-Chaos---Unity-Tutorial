@@ -45,10 +45,16 @@ public class KitchenObject : MonoBehaviour
     {
         kitchenObjectParent.ClearKitchenObject(); // make counter forget about kitchenObject
 
-        Destroy(gameObject);
+        Destroy(gameObject); // destroys itself
     }
 
-    public static KitchenObject SpawnKitchenObject(KitchenObjectSO kitchenObjectSO,IKitchenObjectParent kitchenObjectParent)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="kitchenObjectSO">What we spawn</param>
+    /// <param name="kitchenObjectParent">kitchenObject`s parent</param>
+    /// <returns></returns>
+    public static KitchenObject SpawnKitchenObject(KitchenObjectSO kitchenObjectSO, IKitchenObjectParent kitchenObjectParent)
     {
 		Transform kitchenObjectTransform = Instantiate(kitchenObjectSO.prefab);
 

@@ -7,4 +7,5 @@ public class CuttingObjectSO : ScriptableObject
 {
 	public KitchenObjectSO input; // what we get slices from(for example - tomato)
 	public KitchenObjectSO output; // slices we got from tomato
+	public int maxCuttingAmount;
 }

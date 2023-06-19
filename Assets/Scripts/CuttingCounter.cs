@@ -1,21 +1,37 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class CuttingCounter : BaseCounter
 {
+	// we listen to that, when we have cut something and also we send our current cutting progress
+	public event EventHandler<OnProgressChangedEventArgs> OnProgressChanged;
+	public class OnProgressChangedEventArgs
+	{
+		public float cuttingProgressNormalized;
+	}
+
+	// this event is called when we cut an object(we want to play animation)
+	public event EventHandler OnCut;
+
 	[SerializeField] private CuttingObjectSO[] cuttingRecipesObjectSO; // all possible recipes
+	private int cuttingProgress;
 
 
 	public override void OnInteract(Player player)
 	{
 		if (!HasKitchenObject()) // check, if current counter has object on it
 		{
-			if (player.HasKitchenObject() && HasRecipeWithInput(player.GetKitchenObject().GetKitchenObjectSO())) //check, if player has something to put on cutting counter and if we actually can cut that
+			if (player.HasKitchenObject()) //check, if player has something to put on cutting counter and if we actually can cut that
 			{
 				if(HasRecipeWithInput(player.GetKitchenObject().GetKitchenObjectSO())) // check, if we have such recipe, to cut that into slices
 				{
 					player.GetKitchenObject().SetKitchenObjectParent(this); // place object from parent on counter, we are looking at
+					cuttingProgress = 0; // we set that to zero, so we can cut that again
+
+					CuttingObjectSO cuttingObjectSO = GetCuttingObjectSO(GetKitchenObject().GetKitchenObjectSO());
+					OnProgressChanged?.Invoke(this, new OnProgressChangedEventArgs { cuttingProgressNormalized = (float)cuttingProgress /  cuttingObjectSO.maxCuttingAmount });
 				}
 			}
 		}
@@ -35,12 +51,22 @@ public class CuttingCounter : BaseCounter
 	{
 		if(HasKitchenObject()) // if we have smth to slice
 		{
-			if(HasRecipeWithInput(GetKitchenObject().GetKitchenObjectSO())) // to prevent cutting slices again
+			if(HasRecipeWithInput(GetKitchenObject().GetKitchenObjectSO())) // to prevent cutting slices again, we check is such reciept exists
 			{
-				var kitchenObjectSO = GetOutputForInput(GetKitchenObject().GetKitchenObjectSO());// get recipe from what is standing on cutting counter
-				GetKitchenObject().DesroySelf(); // destroy unsliced object and make kitchenObjectParent forget about itself
+				cuttingProgress++;
+				CuttingObjectSO cuttingObjectSO = GetCuttingObjectSO(GetKitchenObject().GetKitchenObjectSO());
+				OnProgressChanged?.Invoke(this, new OnProgressChangedEventArgs { cuttingProgressNormalized = (float)cuttingProgress /  cuttingObjectSO.maxCuttingAmount });
 
-				KitchenObject.SpawnKitchenObject(kitchenObjectSO, this); // spawned sliced objects
+				OnCut?.Invoke(this, EventArgs.Empty);
+
+				//if we have cut particular object more than maxCuttingAmount times,we get it sliced objects 
+				if (cuttingProgress >= GetCuttingObjectSO(GetKitchenObject().GetKitchenObjectSO()).maxCuttingAmount)
+				{
+					var kitchenObjectSO = GetOutputForInput(GetKitchenObject().GetKitchenObjectSO());// get recipe from what is standing on cutting counter
+					GetKitchenObject().DesroySelf(); // destroy unsliced object and make kitchenObjectParent forget about itself
+
+					KitchenObject.SpawnKitchenObject(kitchenObjectSO, this); // spawned sliced objects
+				}
 			}	
 		}
 	}
@@ -52,15 +78,9 @@ public class CuttingCounter : BaseCounter
 	/// <returns></returns>
 	private bool HasRecipeWithInput(KitchenObjectSO inputKitchenObjectSO)
 	{
-		foreach (CuttingObjectSO cuttingObjectSO in cuttingRecipesObjectSO)
-		{
-			if(cuttingObjectSO.input == inputKitchenObjectSO) // if we have such object in recipes, so true(we can cut that)
-			{
-				return true;
-			}
-		}
+		CuttingObjectSO cuttingObjectSO = GetCuttingObjectSO(inputKitchenObjectSO);
 
-		return false;
+		return cuttingObjectSO != null;
 	}
 
 	/// <summary>
@@ -70,11 +90,25 @@ public class CuttingCounter : BaseCounter
 	/// <returns></returns>
 	private KitchenObjectSO GetOutputForInput(KitchenObjectSO kitchenObjectSO) 
 	{
-		foreach (CuttingObjectSO cuttingObjectSO in cuttingRecipesObjectSO) 
+		CuttingObjectSO cuttingObjectSO = GetCuttingObjectSO(kitchenObjectSO);
+
+		if(cuttingObjectSO != null)
 		{
-			if(cuttingObjectSO.input == kitchenObjectSO) // if we have such recipe, we return that
+			return cuttingObjectSO.output;
+		}
+		else
+		{
+			return null;
+		}
+	}
+
+	private CuttingObjectSO GetCuttingObjectSO(KitchenObjectSO inputKitchenObjectSO)
+	{
+		foreach (CuttingObjectSO cuttingObjectSO in cuttingRecipesObjectSO)
+		{
+			if(inputKitchenObjectSO == cuttingObjectSO.input)
 			{
-				return cuttingObjectSO.output;
+				return cuttingObjectSO;
 			}
 		}
 
