@@ -3,10 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CuttingCounter : BaseCounter
+public class CuttingCounter : BaseCounter, IHasProgress
 {
 	// we listen to that, when we have cut something and also we send our current cutting progress
-	public event EventHandler<OnProgressChangedEventArgs> OnProgressChanged;
+	public event EventHandler<IHasProgress.OnProgressChangedEventArgs> OnProgressChanged;
 	public class OnProgressChangedEventArgs
 	{
 		public float cuttingProgressNormalized;
@@ -31,7 +31,7 @@ public class CuttingCounter : BaseCounter
 					cuttingProgress = 0; // we set that to zero, so we can cut that again
 
 					CuttingObjectSO cuttingObjectSO = GetCuttingObjectSO(GetKitchenObject().GetKitchenObjectSO());
-					OnProgressChanged?.Invoke(this, new OnProgressChangedEventArgs { cuttingProgressNormalized = (float)cuttingProgress /  cuttingObjectSO.maxCuttingAmount });
+					OnProgressChanged?.Invoke(this, new IHasProgress.OnProgressChangedEventArgs { cuttingProgressNormalized = (float)cuttingProgress /  cuttingObjectSO.maxCuttingAmount });
 				}
 			}
 		}
@@ -39,6 +39,13 @@ public class CuttingCounter : BaseCounter
 		{
 			if (player.HasKitchenObject()) // if player has object with it
 			{
+				if (player.GetKitchenObject().TryGetPlate(out PlateKitchenObject plateKitchenObject))
+				{
+					if (plateKitchenObject.TryAddIndridient(GetKitchenObject().GetKitchenObjectSO()))
+					{
+						GetKitchenObject().DesroySelf();
+					}
+				}
 			}
 			else // if player does not have object with it, we jus	t add this to the player from counter
 			{
@@ -55,7 +62,7 @@ public class CuttingCounter : BaseCounter
 			{
 				cuttingProgress++;
 				CuttingObjectSO cuttingObjectSO = GetCuttingObjectSO(GetKitchenObject().GetKitchenObjectSO());
-				OnProgressChanged?.Invoke(this, new OnProgressChangedEventArgs { cuttingProgressNormalized = (float)cuttingProgress /  cuttingObjectSO.maxCuttingAmount });
+				OnProgressChanged?.Invoke(this, new IHasProgress.OnProgressChangedEventArgs { cuttingProgressNormalized = (float)cuttingProgress /  cuttingObjectSO.maxCuttingAmount });
 
 				OnCut?.Invoke(this, EventArgs.Empty);
 
@@ -114,4 +121,6 @@ public class CuttingCounter : BaseCounter
 
 		return null;
 	}
+
+
 }
